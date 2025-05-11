@@ -1,0 +1,50 @@
+import time
+class FakeRedis:
+    def __init__(self):
+    
+        self.data = {}
+        self.expirations = {}
+
+    def _check_if_expired(self, key):
+        if key in self.expirations:
+            current_time = time.time()
+            expire_time = self.expirations[key]
+
+            if current_time >= expire_time:
+                del self.data[key]
+                del self.expirations[key]
+                print(f"EXPIRED: '{key}' was old and removed.")
+                return True
+        return False
+
+    def set(self, key, value,ex=None):
+
+  
+        self.data[key] = str(value) 
+        print(f"SET: '{key}' = '{self.data[key]}'")
+        
+        if ex is not None:
+        
+            future_expire_timestamp = time.time() + ex
+            self.expirations[key] = future_expire_timestamp
+            print(f"SET EX: '{key}' will be removed in {ex} seconds.")
+
+    def get(self, key):
+       
+        value = self.data.get(key)
+        if value is not None:
+            print(f"GET: '{key}' = '{value}'")
+       
+        return value
+
+    def delete(self, *keys):
+       
+        deleted_count = 0
+        for key in keys:
+            if key in self.data:
+                del self.data[key]
+                deleted_count += 1
+                print(f"DEL: '{key}' deleted")
+            else:
+                print(f"DEL: '{key}' not found")
+        return deleted_count
